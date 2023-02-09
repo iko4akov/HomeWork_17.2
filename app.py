@@ -70,9 +70,14 @@ class MoviesView(Resource):
             return movies_schema.dumps(movie_query, ensure_ascii=False), 200
 
         elif request.args.get("genre_id"):
-            if request.args.get("genre_id"):
+            gen_id = request.args.get("genre_id")
+            movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id).all()
+            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+
+        elif request.args.get("genre_id") and request.args.get("director_id"):
                 gen_id = request.args.get("genre_id")
-                movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id).all()
+                dir_id = request.args.get("director_id")
+                movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id,Movie.director_id == dir_id).all()
                 return movies_schema.dumps(movie_query, ensure_ascii=False), 200
 
         else:
