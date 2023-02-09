@@ -1,15 +1,15 @@
-# app.py
-import json
 
 from flask import Flask, request
 from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import Schema, fields
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app. config['RESTX_JSON'] = {'ensure_ascii': False, 'indent': 2}
+
 db = SQLAlchemy(app)
 
 
@@ -56,18 +56,28 @@ movies_schema = MovieSchema(many=True)
 
 api = Api(app)
 movie_ns = api.namespace('movies')
-
-
-# with app.app_context():
-#     sd = db.session.query(Movie).one()
-#     print(sd)
-
+with app.app_context():
+    db.create_all()
+    db.session.begin()
+    db.session.commit()
 
 @movie_ns.route('/')
 class MoviesView(Resource):
     def get(self):
-        all_movies = db.session.query(Movie).all()
-        return movies_schema.dumps(all_movies)
+        if request.args.get("director_id"):
+            dir_id = request.args.get("director_id")
+            movie_query = db.session.query(Movie).filter(Movie.director_id == dir_id).all()
+            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+
+        elif request.args.get("genre_id"):
+            if request.args.get("genre_id"):
+                gen_id = request.args.get("genre_id")
+                movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id).all()
+                return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+
+        else:
+            all_movies = db.session.query(Movie).all()
+            return movies_schema.dumps(all_movies, ensure_ascii=False), 200
 
 
 @movie_ns.route("/<int:mid>")
@@ -75,7 +85,7 @@ class MovieView(Resource):
     def get(self, mid: int):
         try:
             movie_query = db.session.query(Movie).filter(Movie.id == mid).one()
-            return movie_query, 200
+            return movie_schema.dumps(movie_query, ensure_ascii=False), 200
         except Exception as e:
             return str(e), 404
 

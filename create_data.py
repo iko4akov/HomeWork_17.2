@@ -260,6 +260,7 @@ for movie in data["movies"]:
     with app.app_context():
         db.session.begin()
         db.session.add(m)
+        db.session.commit()
 
 for director in data["directors"]:
     d = Director(
@@ -269,6 +270,8 @@ for director in data["directors"]:
     with app.app_context():
         db.session.begin()
         db.session.add(d)
+        db.session.commit()
+
 
 for genre in data["genres"]:
     d = Genre(
@@ -278,3 +281,4 @@ for genre in data["genres"]:
     with app.app_context():
         db.session.begin()
         db.session.add(d)
+        db.session.commit()
