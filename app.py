@@ -1,3 +1,4 @@
+import json
 
 from flask import Flask, request
 from flask_restx import Api, Resource
@@ -84,6 +85,12 @@ class MoviesView(Resource):
             all_movies = db.session.query(Movie).all()
             return movies_schema.dumps(all_movies, ensure_ascii=False), 200
 
+    def post(self):
+        req_json = request.json
+        new_movie = Movie(**json.loads(req_json))
+        db.session.add(new_movie)
+        db.session.commit()
+        return "New movie added", 201
 
 @movie_ns.route("/<int:mid>")
 class MovieView(Resource):
@@ -94,6 +101,29 @@ class MovieView(Resource):
         except Exception as e:
             return str(e), 404
 
+    def put(self, mid: int):
+        req_json = json.loads(request.json)
+        put_movie = Movie.query.get(mid)
+        put_movie.id = req_json.get('id')
+        put_movie.title = req_json.get('title')
+        put_movie.description = req_json.get('description')
+        put_movie.trailer = req_json.get('trailer')
+        put_movie.year = req_json.get('year')
+        put_movie.rating = req_json.get('rating')
+        put_movie.genre_id = req_json.get('genre_id')
+        put_movie.director_id = req_json.get('director_id')
+        db.session.add(put_movie)
+        db.session.commit()
+        return "Movie has been edited", 204
+
+    def delete(self, mid: int):
+        try:
+            del_movie = Movie.query.get(mid)
+            db.session.delete(del_movie)
+            db.session.commit()
+            return f"", 204
+        except:
+            return "The movie has already been deleted."
 
 if __name__ == '__main__':
     app.run(debug=True)
