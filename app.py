@@ -5,11 +5,10 @@ from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import Schema, fields
 
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app. config['RESTX_JSON'] = {'ensure_ascii': False, 'indent': 2}
+app.config['RESTX_JSON'] = {'ensure_ascii': False, 'indent': 2}
 
 db = SQLAlchemy(app)
 
@@ -54,13 +53,13 @@ class MovieSchema(Schema):
 movie_schema = MovieSchema()
 movies_schema = MovieSchema(many=True)
 
-
 api = Api(app)
 movie_ns = api.namespace('movies')
 with app.app_context():
     db.create_all()
     db.session.begin()
     db.session.commit()
+
 
 @movie_ns.route('/')
 class MoviesView(Resource):
@@ -76,10 +75,10 @@ class MoviesView(Resource):
             return movies_schema.dumps(movie_query, ensure_ascii=False), 200
 
         elif request.args.get("genre_id") and request.args.get("director_id"):
-                gen_id = request.args.get("genre_id")
-                dir_id = request.args.get("director_id")
-                movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id,Movie.director_id == dir_id).all()
-                return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+            gen_id = request.args.get("genre_id")
+            dir_id = request.args.get("director_id")
+            movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id, Movie.director_id == dir_id).all()
+            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
 
         else:
             all_movies = db.session.query(Movie).all()
@@ -91,6 +90,7 @@ class MoviesView(Resource):
         db.session.add(new_movie)
         db.session.commit()
         return "New movie added", 201
+
 
 @movie_ns.route("/<int:mid>")
 class MovieView(Resource):
@@ -114,16 +114,17 @@ class MovieView(Resource):
         put_movie.director_id = req_json.get('director_id')
         db.session.add(put_movie)
         db.session.commit()
-        return "Movie has been edited", 204
+        return "", 204
 
     def delete(self, mid: int):
         try:
             del_movie = Movie.query.get(mid)
             db.session.delete(del_movie)
             db.session.commit()
-            return f"", 204
+            return "", 204
         except:
             return "The movie has already been deleted."
+
 
 if __name__ == '__main__':
     app.run(debug=True)
