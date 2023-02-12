@@ -67,26 +67,25 @@ class MoviesView(Resource):
         if request.args.get("director_id"):
             dir_id = request.args.get("director_id")
             movie_query = db.session.query(Movie).filter(Movie.director_id == dir_id).all()
-            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+            return movies_schema.dump(movie_query), 200
 
         elif request.args.get("genre_id"):
             gen_id = request.args.get("genre_id")
             movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id).all()
-            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
+            return movies_schema.dump(movie_query), 200
 
         elif request.args.get("genre_id") and request.args.get("director_id"):
             gen_id = request.args.get("genre_id")
             dir_id = request.args.get("director_id")
             movie_query = db.session.query(Movie).filter(Movie.genre_id == gen_id, Movie.director_id == dir_id).all()
-            return movies_schema.dumps(movie_query, ensure_ascii=False), 200
-
+            return movies_schema.dump(movie_query), 200
         else:
             all_movies = db.session.query(Movie).all()
-            return movies_schema.dumps(all_movies, ensure_ascii=False), 200
+            return movies_schema.dump(all_movies), 200
 
     def post(self):
         req_json = request.json
-        new_movie = Movie(**json.loads(req_json))
+        new_movie = Movie(**req_json)
         db.session.add(new_movie)
         db.session.commit()
         return "New movie added", 201
@@ -97,12 +96,12 @@ class MovieView(Resource):
     def get(self, mid: int):
         try:
             movie_query = db.session.query(Movie).filter(Movie.id == mid).one()
-            return movie_schema.dumps(movie_query, ensure_ascii=False), 200
+            return movie_schema.dump(movie_query), 200
         except Exception as e:
             return str(e), 404
 
     def put(self, mid: int):
-        req_json = json.loads(request.json)
+        req_json = request.json
         put_movie = Movie.query.get(mid)
         put_movie.id = req_json.get('id')
         put_movie.title = req_json.get('title')
